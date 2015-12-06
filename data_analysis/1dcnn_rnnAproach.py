@@ -115,20 +115,36 @@ ns = NormalizedSpectrograms(getVideoSpectrograms())
 X_train, Y_train  = ns.getTrainData()
 X_train = np.reshape(X_train, (-1,1,1,120))
 print(X_train.shape)
+
 #ws = np.array(X_train.shape)
 #ss = np.array(X_train.shape)
-#ws = (1, 30)
-#ss = (
-#X_train = sliding_window(X_train,ws,ss,True)
+ws = (1,1,1,30)
+ss = (1,1,1,1)
+ys = np.array(list(map(lambda x: interpolateYs(x, X_train.shape[-1]), Y_train)))
+print(ys.shape)
+ys = np.reshape(ys, (-1,1,1,X_train.shape[-1]))
+print(ys.shape)
+y = sliding_window(ys,ws,ss)
+print(y.shape)
+Y_train = y[:,:,0,0,0]
+
 X_val, Y_val = ns.getValidationData()
 X_val = np.reshape(X_val, (-1,1,1,120))
+X_val = sliding_window(X_val,ws,ws)
+X_val = X_val[:,0,:,:,:]
+Y_val = np.reshape(Y_val, (-1,1))
 
+X_train = sliding_window(X_train,ws,ss)
+X_train = X_train[:,0,:,:,:]
 
 #slice the spectrogram
 print(X_train.shape)
 #Y_train = np.repeat(np.reshape(-1,1), X_train.shape[1], axis=1)
 print(Y_train.shape)
 print(X_val.shape)
+print(Y_val.shape)
+
+learnLib.shuffle_in_unison(X_train, Y_train)
 
 print("Model (nb_filters1, nb_col1, nb_filters2, nb_col2, ltsm_neurons, drop1, drops2)")
 
@@ -142,15 +158,13 @@ for args in learnLib.RandomCnnRnnParameters(): #itertools.product(nb_hiddens, dr
     print("Model: ", args)
     model, outshape = learnLib.get_1DCNN_RNN_model(X_train[0].shape, *args)
     print(outshape)
-    Y_tr = np.array(list(map(lambda x: interpolateYs(x, outshape), Y_train)))
-    Y_v = np.array(list(map(lambda x: interpolateYs(x, outshape), Y_val)))
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5)
-    history = model.fit(X_train, Y_tr, batch_size=50, nb_epoch=20,
-           verbose=1, validation_data=(X_val,Y_v), callbacks=[early_stopping])
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3)
+    history = model.fit(X_train, Y_train, batch_size=5000, nb_epoch=20,
+           verbose=1, validation_data=(X_val,Y_val), callbacks=[early_stopping])
 
 
     # most recent loss hist.history["loss"][-1]
-    r, rmse, _ = learnLib.assess_2dmodel(model, X_val, Y_v)
+    r, rmse, _ = learnLib.assess_model(model, X_val, Y_val)
     models[args]  = r,rmse
     print("Model r: ", r)
     print("Model rmse: ", rmse)
@@ -171,13 +185,16 @@ for args in learnLib.RandomCnnRnnParameters(): #itertools.product(nb_hiddens, dr
 
 
 X_test, Y_t = ns.getTestData()
-X_test = np.reshape(X_test, (-1,1,1,120))
 
-Y_test = np.array(list(map(lambda x: interpolateYs(x, maxModelOutShape), Y_t)))
+X_test = np.reshape(X_test, (-1,1,1,120))
+X_test = sliding_window(X_test,ws,ws)
+X_test = X_test[:,0,:,:,:]
+Y_test = np.reshape(Y_t, (-1,1))
+
 
 learnLib.printModels(models)
 
-r, rmse, preds = learnLib.assess_2dmodel(maxModel, X_test, Y_test)
+r, rmse, preds = learnLib.assess_model(maxModel, X_test, Y_test)
 predicted_bpm = np.array(list(map(ns.unnormalize_bpm, preds)))
 print("Model r: ", r)
 print("Model rmse: ", rmse)

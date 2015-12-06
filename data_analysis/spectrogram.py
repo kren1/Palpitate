@@ -363,7 +363,7 @@ class VideoSpectrograms:
             if self.spectrogram_dict[subject_state] != ([],[]):
                 X += list(zip([np.array(x) for x in self.spectrogram_dict[subject_state][0][chanel]],
                               [x for x in self.spectrogram_dict[subject_state][0][1]]))
-        X = list(filter(lambda x: x[0].shape[0] == 120, X))
+                X = list(filter(lambda x: x[0].shape[0] == 120 and all(map(lambda y: y < 140, x[1])), X))
         X, y = map(list, zip(*X))
         return np.array(X), np.array(y)
 

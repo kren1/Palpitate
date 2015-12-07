@@ -133,7 +133,7 @@ class RandomCnnRnnParameters():
         self.__cnt += 1
         if self.__cnt > 100:
             raise StopIteration
-        return  random.randrange(32,128,6), \
+        return  random.randrange(32,100,6), \
                 random.randrange(2,6,1), \
                 random.randrange(64,256,8), \
                 random.randrange(4,10,1), \

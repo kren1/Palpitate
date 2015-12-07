@@ -159,7 +159,7 @@ for args in learnLib.RandomCnnRnnParameters(): #itertools.product(nb_hiddens, dr
     model, outshape = learnLib.get_1DCNN_RNN_model(X_train[0].shape, *args)
     print(outshape)
     early_stopping = EarlyStopping(monitor='val_loss', patience=3)
-    history = model.fit(X_train, Y_train, batch_size=5000, nb_epoch=20,
+    history = model.fit(X_train, Y_train, batch_size=3000, nb_epoch=20,
            verbose=1, validation_data=(X_val,Y_val), callbacks=[early_stopping])
 
 
@@ -190,7 +190,6 @@ X_test = np.reshape(X_test, (-1,1,1,120))
 X_test = sliding_window(X_test,ws,ws)
 X_test = X_test[:,0,:,:,:]
 Y_test = np.reshape(Y_t, (-1,1))
-
 
 learnLib.printModels(models)
 

@@ -107,6 +107,12 @@ def get_RNN_model(in_shape,td_num=512, ltsm_out_dim = 256,nb_hidden=100, drop1=0
     return model
 
 
+def plotR(predicted_bpm, test_bpm):
+    import matplotlib.pyplot as plt
+    n = predicted_bpm.shape[0]
+    xs = range(0,n)
+    plt.plot(xs, predicted_bpm, 'r--', xs, test_bpm, 'bs')
+    plt.show()
 
 class RandomCnnRnnParameters():
     def __init__(self):
